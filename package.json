@@ -1,0 +1,15 @@
+{
+  "name": "vet-medical-archive-system",
+  "version": "1.0.0",
+  "description": "动物诊疗病历归档全栈 Web 应用",
+  "scripts": {
+    "setup": "cd backend && npm install && node init-db.js && cd ../frontend && npm install && npm run build",
+    "start": "cd backend && node server.js",
+    "verify": "bash verify.sh",
+    "init-db": "cd backend && node init-db.js",
+    "build-frontend": "cd frontend && npm run build"
+  },
+  "keywords": ["vet", "medical", "archive", "pet"],
+  "author": "",
+  "license": "ISC"
+}
