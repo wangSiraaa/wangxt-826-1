@@ -1,51 +1,47 @@
-import { createContext, useContext, useState, useEffect } from 'react'
-import api from '../api'
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import api from '../api';
 
-const AuthContext = createContext()
+const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    const savedUser = localStorage.getItem('user')
+    const token = localStorage.getItem('token');
+    const savedUser = localStorage.getItem('user');
     if (token && savedUser) {
-      setUser(JSON.parse(savedUser))
+      setUser(JSON.parse(savedUser));
     }
-    setLoading(false)
-  }, [])
+    setLoading(false);
+  }, []);
 
   const login = async (username, password) => {
-    const response = await api.post('/auth/login', { username, password })
-    const { token, user } = response.data
-    localStorage.setItem('token', token)
-    localStorage.setItem('user', JSON.stringify(user))
-    setUser(user)
-    return user
-  }
+    const response = await api.post('/auth/login', { username, password });
+    const { token, user } = response.data;
+    localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(user));
+    setUser(user);
+    return user;
+  };
 
   const logout = () => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('user')
-    setUser(null)
-  }
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+  };
 
-  const hasRole = (role) => {
-    return user?.role === role
-  }
-
-  const hasAnyRole = (roles) => {
-    return roles.includes(user?.role)
-  }
+  const hasRole = (...roles) => {
+    return user && roles.includes(user.role);
+  };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, hasRole, hasAnyRole, loading }}>
+    <AuthContext.Provider value={{ user, login, logout, hasRole, loading }}>
       {children}
     </AuthContext.Provider>
-  )
+  );
 }
 
 export function useAuth() {
-  return useContext(AuthContext)
+  return useContext(AuthContext);
 }

@@ -1,107 +1,106 @@
-import { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
-import api from '../api.js'
+import React, { useState, useEffect } from 'react';
+import { Link, useParams } from 'react-router-dom';
+import api from '../api';
+import { useAuth } from '../context/AuthContext';
 
 export default function PetDetail() {
-  const { id } = useParams()
-  const [pet, setPet] = useState(null)
-  const [visits, setVisits] = useState([])
-  const [loading, setLoading] = useState(true)
+  const { id } = useParams();
+  const [pet, setPet] = useState(null);
+  const [visits, setVisits] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const { hasRole } = useAuth();
 
   useEffect(() => {
-    loadPet()
-  }, [id])
+    loadPetDetail();
+  }, [id]);
 
-  const loadPet = async () => {
+  const loadPetDetail = async () => {
     try {
-      const res = await api.get(`/pets/${id}`)
-      setPet(res.data.pet)
-      setVisits(res.data.visits || [])
+      const res = await api.get(`/pets/${id}`);
+      setPet(res.data.pet);
+      setVisits(res.data.visits);
     } catch (err) {
-      console.error('加载宠物详情失败', err)
+      console.error('加载宠物详情失败:', err);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
+  };
+
+  if (loading) {
+    return <div className="card">加载中...</div>;
   }
 
-  if (loading) return <div>加载中...</div>
-  if (!pet) return <div>宠物档案不存在</div>
+  if (!pet) {
+    return <div className="card">宠物档案不存在</div>;
+  }
 
   return (
     <div>
-      <Link to="/pets" style={{ color: '#667eea', textDecoration: 'none', marginBottom: '16px', display: 'inline-block' }}>
-        ← 返回宠物列表
-      </Link>
-
       <div className="card">
-        <h2>{pet.name} 的档案</h2>
-        <div className="info-grid">
-          <div className="info-item">
-            <div className="label">种类</div>
-            <div className="value">{pet.species}</div>
+        <h2>宠物详情 - {pet.name}</h2>
+        <div className="grid grid-2">
+          <div>
+            <p><strong>种类：</strong>{pet.species}</p>
+            <p><strong>品种：</strong>{pet.breed || '-'}</p>
+            <p><strong>年龄：</strong>{pet.age ? pet.age + '岁' : '-'}</p>
+            <p><strong>性别：</strong>{pet.gender || '-'}</p>
           </div>
-          <div className="info-item">
-            <div className="label">品种</div>
-            <div className="value">{pet.breed || '-'}</div>
-          </div>
-          <div className="info-item">
-            <div className="label">年龄</div>
-            <div className="value">{pet.age || '-'}</div>
-          </div>
-          <div className="info-item">
-            <div className="label">性别</div>
-            <div className="value">{pet.gender || '-'}</div>
-          </div>
-          <div className="info-item">
-            <div className="label">主人姓名</div>
-            <div className="value">{pet.owner_name}</div>
-          </div>
-          <div className="info-item">
-            <div className="label">主人电话</div>
-            <div className="value">{pet.owner_phone || '-'}</div>
+          <div>
+            <p><strong>主人姓名：</strong>{pet.owner_name}</p>
+            <p><strong>主人电话：</strong>{pet.owner_phone || '-'}</p>
+            <p><strong>建档时间：</strong>{new Date(pet.created_at).toLocaleString()}</p>
           </div>
         </div>
       </div>
 
       <div className="card">
-        <h2>就诊历史</h2>
-        {visits.length === 0 ? (
-          <div className="empty-state">暂无就诊记录</div>
-        ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>就诊时间</th>
-                <th>主诉</th>
-                <th>诊断</th>
-                <th>主治兽医</th>
-                <th>状态</th>
-                <th>操作</th>
-              </tr>
-            </thead>
-            <tbody>
-              {visits.map(visit => (
-                <tr key={visit.id}>
-                  <td>{new Date(visit.visit_date).toLocaleString('zh-CN')}</td>
-                  <td>{visit.chief_complaint || '-'}</td>
-                  <td>{visit.diagnosis || '-'}</td>
-                  <td>{visit.vet_name || '-'}</td>
-                  <td>
-                    <span className={`badge badge-${visit.status}`}>
-                      {visit.status === 'active' ? '进行中' : visit.status === 'completed' ? '已完成' : '已归档'}
-                    </span>
-                  </td>
-                  <td>
-                    <Link to={`/visits/${visit.id}`} className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: '12px' }}>
+        <h2>就诊记录</h2>
+        <table className="table">
+          <thead>
+            <tr>
+              <th>就诊时间</th>
+              <th>主治兽医</th>
+              <th>主诉</th>
+              <th>诊断</th>
+              <th>状态</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            {visits.map((visit) => (
+              <tr key={visit.id}>
+                <td>{new Date(visit.visit_date).toLocaleString()}</td>
+                <td>{visit.vet_name || '-'}</td>
+                <td>{visit.chief_complaint || '-'}</td>
+                <td>{visit.diagnosis || '-'}</td>
+                <td>
+                  <span className={`badge ${visit.status === 'archived' ? 'badge-success' : 'badge-warning'}`}>
+                    {visit.status === 'archived' ? '已归档' : '进行中'}
+                  </span>
+                </td>
+                <td>
+                  <Link to={`/visits/${visit.id}`}>
+                    <button className="btn btn-primary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem' }}>
                       查看
-                    </Link>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+                    </button>
+                  </Link>
+                </td>
+              </tr>
+            ))}
+            {visits.length === 0 && (
+              <tr>
+                <td colSpan="6" style={{ textAlign: 'center', color: '#718096' }}>
+                  暂无就诊记录
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
+
+      <Link to="/pets">
+        <button className="btn btn-secondary">← 返回宠物列表</button>
+      </Link>
     </div>
-  )
+  );
 }
