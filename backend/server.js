@@ -8,6 +8,7 @@ const visitRoutes = require('./routes/visits');
 const prescriptionRoutes = require('./routes/prescriptions');
 const labOrderRoutes = require('./routes/lab_orders');
 const archiveRoutes = require('./routes/archives');
+const riskReviewRoutes = require('./routes/risk_review');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -22,6 +23,7 @@ app.use('/api/visits', visitRoutes);
 app.use('/api/prescriptions', prescriptionRoutes);
 app.use('/api/lab-orders', labOrderRoutes);
 app.use('/api/archives', archiveRoutes);
+app.use('/api/risk-review', riskReviewRoutes);
 
 app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
